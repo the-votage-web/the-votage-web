@@ -28,10 +28,6 @@ export function GeofenceGuard({
   pageTitle = 'This Page',
   zonesOverride,
 }: GeofenceGuardProps) {
-  // Geotagging suspended for now so people anywhere can access normally
-  return <>{children}</>;
-
-  /*
   const {
     status,
     evaluation,
@@ -64,7 +60,7 @@ export function GeofenceGuard({
     return (
       <div className="min-h-screen bg-[#FAF7F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white border border-[#E8E2D9] rounded-2xl p-8 text-center shadow-xl relative overflow-hidden">
-          {/!* Pulsing Radar Glow *!/}
+          {/* Pulsing Radar Glow */}
           <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-[#FF6B35]/15 animate-ping" />
             <div className="absolute inset-2 rounded-full bg-[#FF6B35]/25 animate-pulse" />
@@ -129,7 +125,7 @@ export function GeofenceGuard({
             {pageTitle} is restricted to attendees physically present at our authorized church locations.
           </p>
 
-          {/!* Distance Readout Card *!/}
+          {/* Distance Readout Card */}
           <div className="bg-[#FAF7F0] border border-red-200 rounded-xl p-4 mb-6 text-left">
             <div className="flex justify-between items-center mb-2">
               <span className="text-[11px] uppercase font-semibold text-[#8B7355] tracking-wider">
@@ -146,7 +142,7 @@ export function GeofenceGuard({
             </div>
           </div>
 
-          {/!* List of all allowed venues *!/}
+          {/* List of all allowed venues */}
           <div className="bg-[#FAF7F0] border border-[#E8E2D9] rounded-xl p-4 text-left mb-6 space-y-2.5">
             <div className="text-[11px] font-semibold text-[#8B7355] uppercase tracking-wider">
               Authorized Locations:
@@ -204,7 +200,7 @@ export function GeofenceGuard({
             'Location access was blocked in your browser. Please allow location to verify you are present at the venue:'}
         </p>
 
-        {/!* Tab Selector *!/}
+        {/* Tab Selector */}
         <div className="bg-[#FAF7F0] border border-[#E8E2D9] rounded-xl p-4 text-left mb-6">
           <div className="text-[11px] font-semibold text-[#8B7355] uppercase tracking-wider mb-3">
             Quick 2-Step Enable Guide:
@@ -243,7 +239,7 @@ export function GeofenceGuard({
             </button>
           </div>
 
-          {/!* Guide Content *!/}
+          {/* Guide Content */}
           <div className="text-xs text-[#4A4A4A] space-y-2.5 leading-relaxed">
             {deviceTab === 'brave_chrome' && (
               <div className="space-y-2">
@@ -308,5 +304,4 @@ export function GeofenceGuard({
       </div>
     </div>
   );
-  */
 }
