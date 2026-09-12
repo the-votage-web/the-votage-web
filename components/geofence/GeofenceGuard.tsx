@@ -12,6 +12,8 @@ import {
   Info,
   RefreshCcw,
   ShieldCheck,
+  Radar,
+  Loader2,
 } from 'lucide-react';
 import { useGeofence } from '@/hooks/use-geofence';
 import { formatDistance } from '@/lib/geofence/geo-utils';
@@ -29,9 +31,8 @@ export function GeofenceGuard({
   zonesOverride,
 }: GeofenceGuardProps) {
   // Geotagging suspended for now so people anywhere can access normally
-  return <>{children}</>;
+  const isSuspended = true;
 
-  /*
   const {
     status,
     evaluation,
@@ -44,14 +45,13 @@ export function GeofenceGuard({
 
   const [deviceTab, setDeviceTab] = useState<'brave_chrome' | 'ios' | 'android'>('brave_chrome');
 
-  // 1. Allowed or Disabled
-  if (status === 'allowed' || status === 'disabled') {
+  // 1. Allowed or Disabled or Suspended
+  if (isSuspended || status === 'allowed' || status === 'disabled') {
     return (
       <>
         {isBypassed && (
-          <div className="bg-amber-50 border-b border-amber-200 text-amber-900 text-xs px-4 py-2 text-center flex items-center justify-center gap-2 font-medium">
-            <ShieldAlert className="w-4 h-4 text-amber-600" />
-            <span>Developer Mode: Venue Geofencing Bypassed (?bypass_geo=true)</span>
+          <div className="bg-amber-500 text-white text-xs py-1 px-3 text-center font-medium sticky top-0 z-50">
+            Geofencing Bypassed (Admin / Preview Mode)
           </div>
         )}
         {children}
@@ -59,48 +59,33 @@ export function GeofenceGuard({
     );
   }
 
-  // 2. Checking / Radar State
+  // 2. Checking / Loading State
   if (status === 'checking' || status === 'idle') {
     return (
       <div className="min-h-screen bg-[#FAF7F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4">
         <div className="max-w-md w-full bg-white border border-[#E8E2D9] rounded-2xl p-8 text-center shadow-xl relative overflow-hidden">
-          {/!* Pulsing Radar Glow *!/}
+          {/* Pulsing Radar Glow */}
           <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-[#FF6B35]/15 animate-ping" />
             <div className="absolute inset-2 rounded-full bg-[#FF6B35]/25 animate-pulse" />
-            <div className="relative w-14 h-14 rounded-full bg-gradient-to-tr from-[#FF6B35] to-[#FF8C42] flex items-center justify-center shadow-md">
-              <Compass className="w-7 h-7 text-white animate-spin" style={{ animationDuration: '4s' }} />
+            <div className="relative w-12 h-12 rounded-full bg-[#FF6B35]/10 flex items-center justify-center text-[#FF6B35]">
+              <Radar className="w-6 h-6 animate-spin" style={{ animationDuration: '3s' }} />
             </div>
           </div>
 
           <h2
-            className="text-2xl font-bold text-[#1A1A1A] tracking-tight mb-2"
+            className="text-2xl font-bold text-[#1A1A1A] mb-2"
             style={{ fontFamily: 'var(--font-copperplate-bold), serif' }}
           >
-            Verifying Location
+            Verifying Venue Location
           </h2>
           <p className="text-[#5E5D5D] text-sm mb-6 leading-relaxed">
-            Acquiring high-accuracy GPS coordinates to confirm you are present at an authorized venue...
+            Please wait a moment while we verify you are present at an authorized service location.
           </p>
 
-          <div className="bg-[#FAF7F0] border border-[#E8E2D9] rounded-xl p-4 text-left space-y-2 mb-6">
-            <div className="text-[11px] font-semibold text-[#8B7355] uppercase tracking-wider">
-              Authorized Venues:
-            </div>
-            {zones.map((zone) => (
-              <div key={zone.id} className="flex items-start gap-2 text-xs text-[#1A1A1A]">
-                <MapPin className="w-3.5 h-3.5 text-[#FF6B35] mt-0.5 shrink-0" />
-                <div>
-                  <span className="font-semibold text-[#1A1A1A]">{zone.name}</span>
-                  <span className="text-[#717171] block text-[11px]">{zone.address}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-center gap-2 text-xs text-[#8B7355] bg-[#FAF7F0] border border-[#E8E2D9] py-2.5 px-3 rounded-lg">
-            <Info className="w-4 h-4 text-[#FF6B35] shrink-0" />
-            <span>Please tap &quot;Allow&quot; when prompted by your browser</span>
+          <div className="flex items-center justify-center gap-2 text-xs text-[#8B7355] bg-[#FAF7F0] border border-[#E8E2D9] rounded-xl py-3 px-4">
+            <Loader2 className="w-4 h-4 animate-spin text-[#FF6B35]" />
+            <span>Connecting to satellite GPS / cellular tower...</span>
           </div>
         </div>
       </div>
@@ -108,9 +93,10 @@ export function GeofenceGuard({
   }
 
   // 3. Out of Bounds State (Outside all authorized venues)
-  if (status === 'out_of_bounds' && evaluation) {
-    const nearest = evaluation.nearestZone;
-    const distanceFormatted = formatDistance(evaluation.nearestDistanceKm);
+  const evalData = evaluation;
+  if (status === 'out_of_bounds' && evalData) {
+    const nearest = evalData.nearestZone;
+    const distanceFormatted = formatDistance(evalData.nearestDistanceKm);
 
     return (
       <div className="min-h-screen bg-[#FAF7F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4">
@@ -129,7 +115,7 @@ export function GeofenceGuard({
             {pageTitle} is restricted to attendees physically present at our authorized church locations.
           </p>
 
-          {/!* Distance Readout Card *!/}
+          {/* Distance Readout Card */}
           <div className="bg-[#FAF7F0] border border-red-200 rounded-xl p-4 mb-6 text-left">
             <div className="flex justify-between items-center mb-2">
               <span className="text-[11px] uppercase font-semibold text-[#8B7355] tracking-wider">
@@ -146,12 +132,12 @@ export function GeofenceGuard({
             </div>
           </div>
 
-          {/!* List of all allowed venues *!/}
+          {/* List of all allowed venues */}
           <div className="bg-[#FAF7F0] border border-[#E8E2D9] rounded-xl p-4 text-left mb-6 space-y-2.5">
             <div className="text-[11px] font-semibold text-[#8B7355] uppercase tracking-wider">
               Authorized Locations:
             </div>
-            {evaluation.allDistances.map(({ zone, distanceKm }) => (
+            {evalData.allDistances.map(({ zone, distanceKm }) => (
               <div
                 key={zone.id}
                 className="flex items-center justify-between text-xs py-1.5 border-b border-[#E8E2D9] last:border-0"
@@ -164,133 +150,162 @@ export function GeofenceGuard({
                   </div>
                 </div>
                 <div className="text-right shrink-0 ml-3">
-                  <span className="font-mono font-medium text-[#1A1A1A]">
+                  <span className="font-medium text-stone-700">
                     {formatDistance(distanceKm)}
                   </span>
+                  <div className="text-[10px] text-stone-400">
+                    radius: {zone.radiusKm}km
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <button
-            onClick={retryCheck}
-            disabled={isRetrying}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#FF6B35] hover:bg-[#e55a2b] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-60"
-          >
-            <RotateCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
-            {isRetrying ? 'Checking Location...' : 'Retry Location Check'}
-          </button>
+          {/* Actions */}
+          <div className="space-y-3">
+            <button
+              onClick={() => retryCheck()}
+              disabled={isRetrying}
+              className="w-full py-3 px-4 rounded-xl bg-[#1A1A1A] hover:bg-[#333333] text-white font-medium text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCcw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+              {isRetrying ? 'Updating GPS coordinates...' : 'Retry Location Check'}
+            </button>
+
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
+              }}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#FAF7F0] border border-[#E8E2D9] hover:bg-stone-200 text-[#1A1A1A] font-medium text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <RefreshCcw className="w-3.5 h-3.5" />
+              Reload Page
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // 4. Permission Denied / Blocked
+  // 4. Permission Denied or Error State (Helpful device guide)
   return (
     <div className="min-h-screen bg-[#FAF7F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4">
-      <div className="max-w-lg w-full bg-white border border-[#E8E2D9] rounded-2xl p-6 sm:p-8 text-center shadow-xl relative">
-        <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mx-auto mb-4 flex items-center justify-center shadow-inner">
-          <AlertTriangle className="w-8 h-8" />
+      <div className="max-w-md w-full bg-white border border-[#E8E2D9] rounded-2xl p-8 text-center shadow-xl">
+        <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 mx-auto mb-5 flex items-center justify-center shadow-inner">
+          <ShieldAlert className="w-8 h-8" />
         </div>
 
         <h2
           className="text-2xl font-bold text-[#1A1A1A] mb-2"
           style={{ fontFamily: 'var(--font-copperplate-bold), serif' }}
         >
-          Location Permission Needed
+          Location Access Required
         </h2>
-        <p className="text-[#5E5D5D] text-sm mb-5 leading-relaxed">
+
+        <p className="text-[#5E5D5D] text-sm mb-6 leading-relaxed">
           {errorMessage ||
             'Location access was blocked in your browser. Please allow location to verify you are present at the venue:'}
         </p>
 
-        {/!* Tab Selector *!/}
+        {/* Tab Selector */}
         <div className="bg-[#FAF7F0] border border-[#E8E2D9] rounded-xl p-4 text-left mb-6">
           <div className="text-[11px] font-semibold text-[#8B7355] uppercase tracking-wider mb-3">
             Quick 2-Step Enable Guide:
           </div>
 
-          <div className="grid grid-cols-3 gap-1 bg-white p-1 rounded-lg border border-[#E8E2D9] mb-4 text-xs">
+          <div className="flex rounded-lg bg-[#E8E2D9]/50 p-1 mb-4">
             <button
+              type="button"
               onClick={() => setDeviceTab('brave_chrome')}
-              className={`py-1.5 px-2 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
                 deviceTab === 'brave_chrome'
-                  ? 'bg-[#FF6B35] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-black'
+                  ? 'bg-white text-[#1A1A1A] shadow-sm font-semibold'
+                  : 'text-[#8B7355] hover:text-[#1A1A1A]'
               }`}
             >
-              <Laptop className="w-3.5 h-3.5" /> Brave / Chrome
+              Chrome / Brave
             </button>
             <button
+              type="button"
               onClick={() => setDeviceTab('ios')}
-              className={`py-1.5 px-2 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
                 deviceTab === 'ios'
-                  ? 'bg-[#FF6B35] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-black'
+                  ? 'bg-white text-[#1A1A1A] shadow-sm font-semibold'
+                  : 'text-[#8B7355] hover:text-[#1A1A1A]'
               }`}
             >
-              <Smartphone className="w-3.5 h-3.5" /> iPhone / iPad
+              iPhone (Safari)
             </button>
             <button
+              type="button"
               onClick={() => setDeviceTab('android')}
-              className={`py-1.5 px-2 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
                 deviceTab === 'android'
-                  ? 'bg-[#FF6B35] text-white shadow-sm'
-                  : 'text-gray-600 hover:text-black'
+                  ? 'bg-white text-[#1A1A1A] shadow-sm font-semibold'
+                  : 'text-[#8B7355] hover:text-[#1A1A1A]'
               }`}
             >
-              <Smartphone className="w-3.5 h-3.5" /> Android
+              Android
             </button>
           </div>
 
-          {/!* Guide Content *!/}
+          {/* Guide Content */}
           <div className="text-xs text-[#4A4A4A] space-y-2.5 leading-relaxed">
             {deviceTab === 'brave_chrome' && (
               <div className="space-y-2">
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex items-start gap-2 text-xs text-amber-900">
-                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#FF6B35]" />
-                  <div>
-                    <strong className="text-[#1A1A1A] block font-semibold mb-0.5">
-                      Look at your Address Bar:
-                    </strong>
-                    Click the <strong>Tune / Sliders 🎚️</strong> or <strong>Lock 🔒</strong> icon next to the URL.
-                  </div>
+                <div className="flex gap-2">
+                  <span className="font-bold text-[#FF6B35]">1.</span>
+                  <span>Tap the <strong>tune/lock icon</strong> or the <strong>shield icon</strong> at the left of your browser address bar.</span>
                 </div>
-                <ol className="list-decimal list-inside space-y-1.5 pl-1">
-                  <li>Click the <strong className="text-[#1A1A1A]">tune 🎚️ / lock 🔒 icon</strong> next to the URL.</li>
-                  <li>Switch <strong className="text-[#1A1A1A]">Location</strong> to <strong className="text-[#FF6B35]">&quot;Allow&quot;</strong> or <strong className="text-[#FF6B35]">&quot;Reset permission&quot;</strong>.</li>
-                  <li>Click <strong className="text-[#FF6B35]">Re-Check Location</strong> below.</li>
-                </ol>
+                <div className="flex gap-2">
+                  <span className="font-bold text-[#FF6B35]">2.</span>
+                  <span>Tap <strong>Site Settings / Permissions</strong> &rarr; change <strong>Location</strong> to <strong>Allow</strong>.</span>
+                </div>
               </div>
             )}
 
             {deviceTab === 'ios' && (
-              <ol className="list-decimal list-inside space-y-1.5">
-                <li>In Safari, tap the <strong className="text-[#1A1A1A]">&quot;aA&quot;</strong> or page settings icon on the address bar.</li>
-                <li>Tap <strong className="text-[#1A1A1A]">Website Settings</strong> &rarr; set <strong className="text-[#FF6B35]">Location</strong> to <strong className="text-[#FF6B35]">Allow</strong>.</li>
-                <li>Ensure <strong className="text-[#1A1A1A]">Settings &rarr; Privacy &rarr; Location Services</strong> is ON.</li>
-                <li>Tap <strong className="text-[#FF6B35]">Re-Check Location</strong> below.</li>
-              </ol>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <span className="font-bold text-[#FF6B35]">1.</span>
+                  <span>Tap the <strong>'aA'</strong> icon in Safari's address bar &rarr; select <strong>Website Settings</strong>.</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-bold text-[#FF6B35]">2.</span>
+                  <span>Set <strong>Location</strong> to <strong>Allow</strong> or <strong>Ask</strong>, then reload.</span>
+                </div>
+                <div className="flex gap-2 text-[#717171] text-[11px] pt-1">
+                  <span>(Also verify iOS Settings &rarr; Privacy &amp; Security &rarr; Location Services is ON)</span>
+                </div>
+              </div>
             )}
 
             {deviceTab === 'android' && (
-              <ol className="list-decimal list-inside space-y-1.5">
-                <li>Make sure <strong className="text-[#1A1A1A]">Device Location (GPS)</strong> is turned ON in your top quick settings.</li>
-                <li>In Chrome / Brave, tap the <strong className="text-[#1A1A1A]">tune 🎚️ / lock 🔒 icon</strong> on the address bar &rarr; enable <strong className="text-[#FF6B35]">Location</strong>.</li>
-                <li>Tap <strong className="text-[#FF6B35]">Re-Check Location</strong> below.</li>
-              </ol>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <span className="font-bold text-[#FF6B35]">1.</span>
+                  <span>Tap the <strong>Lock / Settings icon</strong> next to the address bar.</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="font-bold text-[#FF6B35]">2.</span>
+                  <span>Select <strong>Permissions</strong> &rarr; toggle <strong>Location</strong> to <strong>Allowed</strong>.</span>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="space-y-2.5">
+        {/* Retry Button */}
+        <div className="space-y-3">
           <button
-            onClick={retryCheck}
+            onClick={() => retryCheck()}
             disabled={isRetrying}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#FF6B35] hover:bg-[#e55a2b] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer disabled:opacity-60"
+            className="w-full py-3 px-4 rounded-xl bg-[#1A1A1A] hover:bg-[#333333] text-white font-medium text-sm transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            <RotateCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
-            {isRetrying ? 'Checking Location...' : 'Re-Check Location'}
+            <RefreshCcw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+            {isRetrying ? 'Re-checking permissions...' : "I've Allowed Location - Retry"}
           </button>
 
           <button
@@ -308,5 +323,4 @@ export function GeofenceGuard({
       </div>
     </div>
   );
-  */
 }

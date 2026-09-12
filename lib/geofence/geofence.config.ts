@@ -20,9 +20,9 @@ export const DEFAULT_GEOFENCE_ZONES: GeofenceZone[] = [
     id: 'winlos-centre',
     name: 'The Winlos Centre',
     address: 'The Winlos Centre, Benin City, Edo State',
-    latitude: 6.2768368,
-    longitude: 5.575018,
-    radiusKm: 0.25, // 250 meters radius
+    latitude: 6.260650427468145,
+    longitude: 5.601475436188118,
+    radiusKm: 1, // 1 km radius
   },
   {
     id: 'airport-rd-oka',
@@ -30,15 +30,7 @@ export const DEFAULT_GEOFENCE_ZONES: GeofenceZone[] = [
     address: '144 Airport Rd, Oka, Benin City 300251, Edo State',
     latitude: 6.2973797,
     longitude: 5.5921004,
-    radiusKm: 0.25, // 250 meters radius
-  },
-  {
-    id: 'venue-location-3',
-    name: 'Authorized Venue Location 3',
-    address: 'Benin City, Edo State (6.26065, 5.60148)',
-    latitude: 6.260650427468145,
-    longitude: 5.601475436188118,
-    radiusKm: 0.25, // 250 meters radius
+    radiusKm: 1, // 1 km radius
   },
 ];
 
