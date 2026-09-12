@@ -35,8 +35,8 @@ export const DEFAULT_GEOFENCE_ZONES: GeofenceZone[] = [
 ];
 
 export const GEOFENCE_CONFIG: GeofenceConfig = {
-  // Geofence active
-  enabled: process.env.NEXT_PUBLIC_GEOFENCE_ENABLED !== 'false',
+  // Suspended for now so people anywhere can have access
+  enabled: false, // process.env.NEXT_PUBLIC_GEOFENCE_ENABLED !== 'false',
   zones: DEFAULT_GEOFENCE_ZONES,
   highAccuracy: true,
   timeoutMs: 6000, // 6 seconds for initial high-accuracy check before fast cellular fallback
